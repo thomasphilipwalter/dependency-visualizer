@@ -1,1 +1,7 @@
+# Ignore bytecode files
+__pycache__/
+
+# Ignore venv directories
 venv/
+lib/
+
