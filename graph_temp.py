@@ -24,10 +24,17 @@ def build_graph(json_file):
     # Toggle physics off to prevent jittering
     net.toggle_physics(False)
 
+    # Calculate positions for nodes using NetworkX's shell layout or custom layout
+    pos = nx.shell_layout(G)  # This ensures nodes without incoming edges are left and without outgoing are right
+
     # Convert NetworkX graph to Pyvis
     net.from_nx(G)
 
-    # Set custom template for the HTML file
+    # Set custom positions for the nodes based on the layout calculated
+    for node in net.nodes:
+        node['x'] = pos[node['id']][0]  # Set x position
+        node['y'] = pos[node['id']][1]  # Set y position
+
     # Set custom template for the HTML file
     net.template = Template("""
     <!DOCTYPE html>
@@ -65,21 +72,7 @@ def build_graph(json_file):
             var options = {
                 physics: { enabled: false },  // Disable physics to prevent jittering
                 interaction: { hover: true, tooltipDelay: 200 },
-                nodes: {
-                    color: { 
-                        background: "#e0e0e0",  // Lighter background color for nodes
-                        border: "#b0b0b0"  // Lighter border color for nodes
-                    },
-                    font: {
-                        color: "#000000"  // Black color for node labels
-                    }
-                },
                 edges: {
-                    color: { 
-                        color: "#c0c0c0",  // Lighter color for edges
-                        highlight: "#999999",  // Highlighted edge color
-                        hover: "#999999"  // Edge color when hovered
-                    },
                     smooth: { enabled: false },  // Disable curve in edges, making them straight
                     arrows: {
                         to: { enabled: true, scaleFactor: 0.5 }
@@ -108,7 +101,6 @@ def build_graph(json_file):
     </body>
     </html>
     """)
-
 
     # Save and open the interactive HTML file
     net.show("dependency_graph.html")
