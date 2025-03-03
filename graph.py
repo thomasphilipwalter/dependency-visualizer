@@ -4,31 +4,54 @@ import matplotlib.pyplot as plt
 from pyvis.network import Network
 from jinja2 import Template
 
-def build_graph(json_file):
+def build_graph(json_file, os):
+    first_tier = ['BiocManager', 'BiocVersion', 'DESeq2', 'Rcpp', 'VennDiagram', 'WGCNA', 'apeglm', 'aws.signature', 'circlize', 'cluster', 'data.table', 'fastcluster', 'fgsea', 'ggfortify', 'ggplot2', 'jsonlite', 'limma', 'pheatmap', 'renv', 'rjson', 'tidyverse']
+
     data = get_dependencies(json_file)
 
-    # Create directed graph
+    # Create graph
     G = nx.DiGraph()
 
-    # Add nodes and edges
+    # adding nodes and edges
     for package, details in data.items():
-        # Set the title to contain version and source information
-        G.add_node(package, title=f"Version: {details['Version']}\nSource: {details['Source']}")
-        for dependency in details.get("Requirements", []):
-            if dependency in data:  # Only add an edge if the dependency exists in the dataset
-                G.add_edge(package, dependency)
+        if os == "mac":
+            # title contains info
+            G.add_node(package, title=f"Version: {details['Version']}\nSource: {details['Source']}")
+            for dependency in details.get("Requirements", []):
+                if dependency in data:  # ensure dependency exists in dataset before adding edge (ignores R or system libs)
+                    G.add_edge(package, dependency)
+        else:
+            # title contains info
+            G.add_node(package, title=f"Version: {details['Version']}\nSource: {details['Source']}")
+            for dependency in details.get("Depends", []):
+                dependency_stripped = dependency.split(maxsplit=1)
+                if dependency_stripped[0] in data:  # ensure dependency exists in dataset before adding edge (ignores R or system libs)
+                    G.add_edge(package, dependency_stripped[0])
+            for dependency in details.get("Imports", []):
+                dependency_stripped = dependency.split(maxsplit=1)
+                if dependency_stripped[0] in data:
+                    G.add_edge(package, dependency_stripped[0])
+            for dependency in details.get("LinkingTo", []):
+                dependency_stripped = dependency.split(maxsplit=1)
+                if dependency_stripped[0] in data:
+                    G.add_edge(package, dependency_stripped[0])
 
-    # Create interactive visualization
+
+    # create interactive graph
     net = Network(height="800px", width="100%", directed=True, notebook=False)
 
-    # Toggle physics off to prevent jittering
+    # prevent jittering
     net.toggle_physics(False)
 
-    # Convert NetworkX graph to Pyvis
+    # Convert to Pyvis
     net.from_nx(G)
 
-    # Set custom template for the HTML file
-    # Set custom template for the HTML file
+    # First tier nodes different color
+    for node in net.nodes:
+        if node["id"] in first_tier:
+            node["color"] = {"background": "orange", "border": "darkorange"} 
+
+    # Set custom template for the HTML file, temporary workaround
     net.template = Template("""
     <!DOCTYPE html>
     <html>
@@ -37,19 +60,18 @@ def build_graph(json_file):
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
         <style>
             body {
-                text-align: center;  /* Center the title */
+                text-align: center;  
             }
             #mynetwork { width: 100%; height: 800px; border: 1px solid lightgray; }
             #infoBox { position: fixed; top: 10px; left: 10px; background-color: white; padding: 10px; border: 1px solid gray; display: none; z-index: 999; }
             #closeInfoBox { position: absolute; top: 5px; right: 5px; font-size: 16px; cursor: pointer; }
-            /* Bold the node title text */
             #nodeVersion, #nodeSource {
                 font-weight: bold;
             }
         </style>
     </head>
     <body>
-        <h2>visAPPprot Dependency Graph MacOS</h2>
+        <h2>visAPPprot Dependencies macOS</h2>
         <div id="mynetwork"></div>
         <div id="infoBox">
             <span id="closeInfoBox">X</span>
@@ -100,7 +122,7 @@ def build_graph(json_file):
                 }
             });
 
-            // Close the info box when the 'X' button is clicked
+            // Close the info box on X
             document.getElementById("closeInfoBox").onclick = function() {
                 document.getElementById("infoBox").style.display = "none"; // Hide the info box
             };
@@ -109,6 +131,4 @@ def build_graph(json_file):
     </html>
     """)
 
-
-    # Save and open the interactive HTML file
-    net.show("dependency_graph.html")
+    net.show("graph.html")
