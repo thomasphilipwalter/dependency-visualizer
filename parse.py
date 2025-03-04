@@ -27,6 +27,27 @@ def clean_data(data, os):
     
     return data_cleaned
 
+def get_dependencies_python(json_file):
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+    
+    return data
+
+def clean_data_python(data):
+    dependencies = {}
+
+    for item in data:
+        package = item['package']
+        package_name = package['package_name']
+        dependencies[package_name] = []
+        for dependency in item['dependencies']:
+            dependencies[package_name].append(dependency['package_name'])
+
+    return dependencies
+        
+
+
+
 def main():
     if len(sys.argv) == 2:
         json_file = sys.argv[1]
