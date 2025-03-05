@@ -31,6 +31,7 @@ G = nx.DiGraph()
 
 # Add edges
 for node, neighbors in data.items():
+    G.add_node(node)
     for neighbor in neighbors:
         G.add_edge(node, neighbor)
 
@@ -47,22 +48,22 @@ if sort:
     # higherarchical graph
     pos = nx.nx_agraph.graphviz_layout(G, prog='dot', args="-Granksep=0 -Gnodesep=0")
 
-    plt.figure(figsize=(150, 80))
-    plt.title(title, fontsize=180, fontweight='bold', color='darkblue', loc='center', pad=20)
+    plt.figure(figsize=(180, 140))
+    plt.title(title, fontsize=100, fontweight='bold', color='darkblue', loc='center', pad=20)
     plt.tight_layout()
     nx.draw(
         G,
         pos,
         with_labels=True,
         node_size=40000,  
-        font_size=55,  
+        font_size=45,  
         edge_color="gray",
         alpha=0.6,
         arrows=True,
         font_weight='bold',
         font_color='black',
-        width=3,
-        arrowsize=30,
+        width=4,
+        arrowsize=40,
         node_color=node_colors
     )
     plt.savefig('random.png')
@@ -73,22 +74,22 @@ else:
     # Spread out graph
     pos = nx.nx_agraph.graphviz_layout(G, prog="sfdp", args="-Goverlap=scale -Grepulsiveforce=40 -Gscale=2")
 
-    plt.figure(figsize=(150, 80)) 
-    plt.title(title, fontsize=180, fontweight='bold', color='darkblue', loc='center', pad=20)
+    plt.figure(figsize=(180, 140))
+    plt.title(title, fontsize=100, fontweight='bold', color='darkblue', loc='center', pad=20)
     plt.tight_layout()
     nx.draw(
         G,
         pos,
         with_labels=True,
         node_size=40000,
-        font_size=55,
+        font_size=45,
         edge_color="gray",
         alpha=0.6,
         arrows=True,
         font_weight='bold',  
         font_color='black', 
-        width=3,
-        arrowsize=30,
+        width=4,
+        arrowsize=40,
         node_color=node_colors   
     )
     plt.savefig('random.png')

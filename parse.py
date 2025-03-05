@@ -43,6 +43,9 @@ def clean_data_python(data):
         for dependency in item['dependencies']:
             dependencies[package_name].append(dependency['package_name'])
 
+    for item in dependencies.items():
+        print(item)
+
     return dependencies
         
 
